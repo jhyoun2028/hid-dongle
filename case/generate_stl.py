@@ -89,6 +89,13 @@ def flat_rbox(l, w, h, r):
     return cs.offset(r0, m3d.JoinType.Round).extrude(h)
 
 
+def rbox_cs(l, w, r):
+    """2D rounded rectangle cross-section."""
+    r0 = max(0.1, min(r, min(l, w) / 2 - 0.01))
+    return m3d.CrossSection.square([l - 2*r0, w - 2*r0]) \
+        .translate([r0, r0]).offset(r0, m3d.JoinType.Round)
+
+
 def box(l, w, h):
     return m3d.Manifold.cube([l, w, h])
 
@@ -124,21 +131,16 @@ def make_bottom():
     full = make_full_case()
     bottom = full.trim_by_plane([0, 0, -1], -split_z)
 
-    # Rim outer straddles the cavity edge: starts RIM_OVERLAP inside the
-    # bottom wall and extends RIM_OVERLAP past the cavity edge into the top.
-    rim_outer = flat_rbox(
-        il + RIM_OVERLAP * 2,
-        iw + RIM_OVERLAP * 2,
-        RIM_H,
-        max(ir + RIM_OVERLAP, 0.3),
-    ).translate([WALL - RIM_OVERLAP, WALL - RIM_OVERLAP, split_z])
-    rim_inner = flat_rbox(
-        il + RIM_OVERLAP * 2 - RIM_W * 2,
-        iw + RIM_OVERLAP * 2 - RIM_W * 2,
-        RIM_H + 0.4,
-        max(ir + RIM_OVERLAP - RIM_W, 0.2),
-    ).translate([WALL - RIM_OVERLAP + RIM_W, WALL - RIM_OVERLAP + RIM_W, split_z - 0.1])
-    rim = rim_outer - rim_inner
+    # Build the rim via 2D offsets from the cavity cross-section. This keeps
+    # the rim wall a uniform RIM_W thick all the way around the corner —
+    # previous two-independent-boxes approach had mismatched inner/outer
+    # corner radii, producing thin / asymmetric corners that risked breaking
+    # on print.
+    cavity_cs = rbox_cs(il, iw, ir).translate([WALL, WALL])
+    outer_cs = cavity_cs.offset(RIM_OVERLAP, m3d.JoinType.Round)
+    inner_cs = outer_cs.offset(-RIM_W, m3d.JoinType.Round)
+    rim_cs = outer_cs - inner_cs
+    rim = rim_cs.extrude(RIM_H).translate([0, 0, split_z])
 
     # Cut the USB-C slot through the upper part of the bottom so the port
     # stays clear after the top is fitted.
