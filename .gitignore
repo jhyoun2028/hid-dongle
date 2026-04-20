@@ -1,0 +1,25 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Out-of-scope trees (separate projects / frozen backups)
+case copy/
+dongle_hack/
+oh-my-openagent/
+
+# Personal payload / typed content
+text.txt
+test*.txt
+
+# Arduino build artifacts (keep only arduino_hid.ino.merged.bin)
+arduino_hid/build/arduino_hid.ino.bin
+arduino_hid/build/arduino_hid.ino.bootloader.bin
+arduino_hid/build/arduino_hid.ino.elf
+arduino_hid/build/arduino_hid.ino.map
+arduino_hid/build/arduino_hid.ino.partitions.bin
+arduino_hid/build/esp32.esp32.esp32s3/
