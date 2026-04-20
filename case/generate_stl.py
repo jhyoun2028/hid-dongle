@@ -155,8 +155,14 @@ def make_top():
     top_half = full.trim_by_plane([0, 0, 1], split_z)
 
     # Carve the USB-C slot through the top half. Cut extends below split_z
-    # so the slot's bottom face doesn't coincide with the trim plane.
-    top_usbc_cut = usbc_cutout(split_z - 0.5, USBC_H + 1.0)
+    # so the slot's bottom face doesn't coincide with the trim plane. Upper
+    # bound sits just above the USB-C body but stays short of the inner
+    # ceiling (eh - WALL) so the material above the slot remains a full
+    # WALL thick — earlier versions extended the cut into the ceiling and
+    # thinned it to ~2.05mm.
+    top_cut_top_z = split_z + USBC_H + 0.1
+    top_cut_z_base = split_z - 0.5
+    top_usbc_cut = usbc_cutout(top_cut_z_base, top_cut_top_z - top_cut_z_base)
     top_half = top_half - top_usbc_cut
 
     # Flip so the open side faces down for printing.
